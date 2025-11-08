@@ -1,0 +1,37 @@
+name: Refresh Selected Companies' Data
+
+on:
+  schedule:
+    - cron: "30 15 * * *"  # Runs daily at 15:30 PM UTC (11:30 PM Taiwan time)
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: pip install requests pandas selenium bs4 webdriver-manager
+
+      - name: Run Data Fetching Script
+        run: python "Parse Finance Data.py"  # script name
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update data"
+            git pull --rebase origin main
+            git push
+          fi
